@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <Image Name="TrackArtwork" Source="" HorizontalAlignment="Center" VerticalAlignment="Top"></Image>
+        <Label Name="TrackLabel" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">Hi</Label>
     </Grid>
 </Window>
