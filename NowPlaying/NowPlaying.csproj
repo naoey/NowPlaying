@@ -68,6 +68,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\Track.cs" />
+    <Compile Include="PlayerIdentifiers\IPlayerIdentifier.cs" />
+    <Compile Include="PlayerIdentifiers\Itunes\ItunesIdentifier.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
