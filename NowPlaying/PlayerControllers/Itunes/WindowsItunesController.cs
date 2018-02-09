@@ -1,9 +1,11 @@
 ﻿using iTunesLib;
+using NowPlaying.Drawing;
 using NowPlaying.Exceptions;
 using NowPlaying.Models;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows.Media.Imaging;
 
 namespace NowPlaying.PlayerControllers.Itunes
@@ -13,21 +15,48 @@ namespace NowPlaying.PlayerControllers.Itunes
         private const string app_name = @"iTunes";
 
         private iTunesApp itunes;
+        private BasicTrackDrawer trackDrawer;
 
-        public WindowsItunesController()
+        private volatile bool playerStopped = true;
+
+        public WindowsItunesController(BasicTrackDrawer drawer)
         {
             if (Process.GetProcessesByName(app_name).Length == 0)
                 throw new ItunesNotRunningException();
 
             itunes = new iTunesApp();
+            trackDrawer = drawer;
+
+            itunes.OnPlayerStopEvent += _ =>
+            {
+                playerStopped = true;
+
+                new Thread(() =>
+                {
+                    Thread.Sleep(500);
+
+                    if (playerStopped)
+                        // If player is still marked as stopped after waiting, then a new track play event wasn't fired,
+                        // which means all playback has currently stopped. Fill in the placeholder.
+                        drawer.Track = null;
+                });
+            };
+
+            itunes.OnPlayerPlayEvent += _ =>
+            {
+                UpdateTrack();
+                drawer.Track = CurrentTrack;
+            };
         }
 
-        public override Track GetTrack()
+        public void UpdateTrack()
         {
             var currentTrack = itunes.CurrentTrack;
 
             if (currentTrack == null)
-                return null;
+                return;
+
+            playerStopped = false;
 
             string tmpFile = Path.GetTempFileName();
             currentTrack.Artwork[1].SaveArtworkToFile(tmpFile);
@@ -38,7 +67,7 @@ namespace NowPlaying.PlayerControllers.Itunes
             artwork.UriSource = new Uri(tmpFile);
             artwork.EndInit();
 
-            return new Track
+            CurrentTrack = new Track
             {
                 Title = currentTrack.Name,
                 Artist = currentTrack.Artist,

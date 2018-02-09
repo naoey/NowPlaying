@@ -10,6 +10,11 @@ namespace NowPlaying.Models
     public class Track
     {
         /// <summary>
+        /// Fired whenever the <see cref="TimeInformation"/> string changes (polled every second).
+        /// </summary>
+        event Action<string> TimeStringChanged;
+
+        /// <summary>
         /// The title of the current track.
         /// </summary>
         public string Title { get; set; }

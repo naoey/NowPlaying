@@ -1,14 +1,30 @@
-﻿using NowPlaying.Models;
+﻿using System;
+using NowPlaying.Models;
 
 namespace NowPlaying.PlayerControllers.Itunes
 {
     public abstract class ItunesController : IPlayerController
     {
+        private Track currentTrack;
+        protected Track CurrentTrack
+        {
+            get => currentTrack;
+            set
+            {
+                if (value == currentTrack)
+                    return;
+
+                currentTrack = value;
+
+                TrackChanged?.Invoke(value);
+            }
+        }
+
         public ItunesController()
         {
         }
 
-        public abstract Track GetTrack();
+        public Track PlayingTrack => CurrentTrack;
 
         public abstract void NextTrack();
 
@@ -20,6 +36,8 @@ namespace NowPlaying.PlayerControllers.Itunes
 
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
+
+        public event Action<Track> TrackChanged;
 
         protected virtual void Dispose(bool disposing)
         {
