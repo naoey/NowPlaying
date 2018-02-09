@@ -36,6 +36,6 @@ namespace NowPlaying.Models
         /// </summary>
         public double CurrentOffset { get; set; }
 
-        public string TimeInformation => $"{TimeSpan.FromSeconds(CurrentOffset).ToString(@"mm\:ss\")} / {TimeSpan.FromSeconds(Duration).ToString(@"mm\:ss\")}";
+        public string TimeInformation => $"{TimeSpan.FromSeconds(CurrentOffset).ToString(@"mm\:ss")} / {TimeSpan.FromSeconds(Duration).ToString(@"mm\:ss")}";
     }
 }

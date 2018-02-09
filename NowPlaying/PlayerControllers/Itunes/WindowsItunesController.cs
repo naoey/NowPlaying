@@ -1,5 +1,4 @@
 ﻿using iTunesLib;
-using NowPlaying.Drawing;
 using NowPlaying.Exceptions;
 using NowPlaying.Models;
 using System;
@@ -15,38 +14,34 @@ namespace NowPlaying.PlayerControllers.Itunes
         private const string app_name = @"iTunes";
 
         private iTunesApp itunes;
-        private BasicTrackDrawer trackDrawer;
 
         private volatile bool playerStopped = true;
 
-        public WindowsItunesController(BasicTrackDrawer drawer)
+        public WindowsItunesController()
         {
             if (Process.GetProcessesByName(app_name).Length == 0)
                 throw new ItunesNotRunningException();
 
             itunes = new iTunesApp();
-            trackDrawer = drawer;
 
-            itunes.OnPlayerStopEvent += _ =>
-            {
-                playerStopped = true;
+            //itunes.OnPlayerStopEvent += _ =>
+            //{
+            //    playerStopped = true;
 
-                new Thread(() =>
-                {
-                    Thread.Sleep(500);
+            //    new Thread(() =>
+            //    {
+            //        Thread.Sleep(500);
 
-                    if (playerStopped)
-                        // If player is still marked as stopped after waiting, then a new track play event wasn't fired,
-                        // which means all playback has currently stopped. Fill in the placeholder.
-                        drawer.Track = null;
-                });
-            };
+            //        if (playerStopped)
+            //            // If player is still marked as stopped after waiting, then a new track play event wasn't fired,
+            //            // which means all playback has currently stopped. Fill in the placeholder.
+            //            CurrentTrack = null;
+            //    });
+            //};
 
-            itunes.OnPlayerPlayEvent += _ =>
-            {
-                UpdateTrack();
-                drawer.Track = CurrentTrack;
-            };
+            //itunes.OnPlayerPlayEvent += _ => UpdateTrack();
+
+            UpdateTrack();
         }
 
         public void UpdateTrack()

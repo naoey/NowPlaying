@@ -24,7 +24,7 @@ namespace NowPlaying.PlayerControllers.Itunes
         {
         }
 
-        public Track PlayingTrack => CurrentTrack;
+        public Track GetTrack() => CurrentTrack;
 
         public abstract void NextTrack();
 

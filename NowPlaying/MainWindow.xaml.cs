@@ -1,14 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Timers;
-using System.Windows.Media.Imaging;
 using System.Diagnostics;
-using iTunesLib;
+using NowPlaying.PlayerControllers.Itunes;
+using NowPlaying.Models;
+using System.Windows.Interop;
+using NowPlaying.Exceptions;
 
 namespace NowPlaying
 {
@@ -17,40 +14,73 @@ namespace NowPlaying
     /// </summary>
     public partial class MainWindow : Window
     {
-        private iTunesApp app;
-        private Timer timer;
-
         public String Identifier;
+
+        private IntPtr? taskbar;
+        private ItunesController itunesController;
+
+        private Track track;
+        protected Track Track
+        {
+            get => track;
+            set
+            {
+                track = value;
+
+                if (value == null)
+                {
+                    TrackLabel.Content = @"Nothing playing!";
+                    return;
+                }
+
+                TrackLabel.Content = $@"🎵 {value.Artist} - {value.Title}";
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
-            Identifier = "Hue";
 
-            Process[] plist = Process.GetProcessesByName("iTunes");
+            Process process = Process.GetProcessesByName(@"Shell_TrayWnd").FirstOrDefault();
+            taskbar = process?.MainWindowHandle;
 
-            if (plist.Length > 0)
-            {
-                app = new iTunesApp();
-            }
 
-            Load();
+            if (!taskbar.HasValue)
+                return;
+
+            HwndSource hwnd = HwndSource.FromHwnd(taskbar.Value);
+
+            var window = hwnd.RootVisual as Window;
+
+            if (window == null)
+                return;
+
+            Top = window.Top;
+            Left = window.Left - 50;
+            Height = 50;
         }
 
-        public void Load()
+        protected override void OnInitialized(EventArgs args)
         {
-            if (app != null)
-            {
-                string tmpFile = System.IO.Path.GetTempFileName();
-                app.CurrentTrack?.Artwork[1].SaveArtworkToFile(tmpFile);
-                BitmapImage artwork = new BitmapImage();
-                artwork.BeginInit();
-                artwork.UriSource = new Uri(tmpFile);
-                artwork.EndInit();
+            base.OnInitialized(args);
 
-                TrackLabel.Content = String.Format("{0} - {1}", app.CurrentTrack?.Artist, app.CurrentTrack?.Name);
-                TrackArtwork.Source = artwork;
+            try
+            {
+                itunesController = CreatePlatformController();
+                itunesController.TrackChanged += track => Track = track;
+                Track = itunesController.GetTrack();
+            }
+            catch (ItunesNotRunningException e)
+            {
+                TrackLabel.Content = @"iTunes isn't running!";
+            }
+            catch (Exception e)
+            {
+                TrackLabel.Content = @"Uh oh!";
             }
         }
+
+        // TODO: create platform-based controller.
+        protected virtual ItunesController CreatePlatformController() => new WindowsItunesController();
     }
 }
