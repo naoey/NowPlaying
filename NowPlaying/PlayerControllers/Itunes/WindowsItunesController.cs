@@ -53,20 +53,21 @@ namespace NowPlaying.PlayerControllers.Itunes
 
             playerStopped = false;
 
-            string tmpFile = Path.GetTempFileName();
-            currentTrack.Artwork[1].SaveArtworkToFile(tmpFile);
+            // TODO: handle artwork
+            //string tmpFile = Path.GetTempFileName();
+            //currentTrack.Artwork[1].SaveArtworkToFile(tmpFile);
 
-            BitmapImage artwork = new BitmapImage();
+            //BitmapImage artwork = new BitmapImage();
 
-            artwork.BeginInit();
-            artwork.UriSource = new Uri(tmpFile);
-            artwork.EndInit();
+            //artwork.BeginInit();
+            //artwork.UriSource = new Uri(tmpFile);
+            //artwork.EndInit();
 
             CurrentTrack = new Track
             {
                 Title = currentTrack.Name,
                 Artist = currentTrack.Artist,
-                Artwork = artwork,
+                //Artwork = artwork,
                 Duration = currentTrack.Duration,
                 CurrentOffset = 0,
             };

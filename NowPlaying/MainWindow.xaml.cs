@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Linq;
 using System.Windows;
-using System.Diagnostics;
 using NowPlaying.PlayerControllers.Itunes;
 using NowPlaying.Models;
 using System.Windows.Interop;
 using NowPlaying.Exceptions;
+using System.Runtime.InteropServices;
 
 namespace NowPlaying
 {
@@ -34,6 +33,8 @@ namespace NowPlaying
                 }
 
                 TrackLabel.Content = $@"🎵 {value.Artist} - {value.Title}";
+
+                updateWindowWidthIfNeeded();
             }
         }
 
@@ -41,23 +42,43 @@ namespace NowPlaying
         {
             InitializeComponent();
 
-            Process process = Process.GetProcessesByName(@"Shell_TrayWnd").FirstOrDefault();
-            taskbar = process?.MainWindowHandle;
+            SizeToContent = SizeToContent.Width;
 
+            Loaded += (_, __) => updateTaskbarPosition();
+        }
 
-            if (!taskbar.HasValue)
-                return;
+        private void updateTaskbarPosition()
+        {
+            RECT taskbarRect = getTaskbarSize();
 
-            HwndSource hwnd = HwndSource.FromHwnd(taskbar.Value);
+            // FIXME: BAD BAD BAD, find out how to determine size of system tray
+            Left = taskbarRect.Right - 1725 - Width;
+            Top = taskbarRect.Top + 2;
+        }
 
-            var window = hwnd.RootVisual as Window;
+        private RECT getTaskbarSize()
+        {
+            IntPtr usHandle = new WindowInteropHelper(Window.GetWindow(this)).Handle;
+            IntPtr taskBarHandle = FindWindow("Shell_traywnd", "");
 
-            if (window == null)
-                return;
+            RECT taskbarRect;
 
-            Top = window.Top;
-            Left = window.Left - 50;
-            Height = 50;
+            GetWindowRect(taskBarHandle, out taskbarRect);
+
+            return taskbarRect;
+        }
+
+        private void updateWindowWidthIfNeeded()
+        {
+            var taskbarRect = getTaskbarSize();
+
+            int x = Math.Abs(taskbarRect.Left - taskbarRect.Right);
+            int y = Math.Abs(taskbarRect.Top - taskbarRect.Bottom);
+
+            TrackLabel.Measure(new Size(x, y));
+
+            Width = TrackLabel.Width;
+
         }
 
         protected override void OnInitialized(EventArgs args)
@@ -82,5 +103,20 @@ namespace NowPlaying
 
         // TODO: create platform-based controller.
         protected virtual ItunesController CreatePlatformController() => new WindowsItunesController();
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        internal static extern bool GetWindowRect(IntPtr hwnd, out RECT lpRect);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;        // x position of upper-left corner
+            public int Top;         // y position of upper-left corner
+            public int Right;       // x position of lower-right corner
+            public int Bottom;      // y position of lower-right corner
+        }
     }
 }
