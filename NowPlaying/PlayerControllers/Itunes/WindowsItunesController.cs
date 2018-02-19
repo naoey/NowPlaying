@@ -1,11 +1,7 @@
 ﻿using iTunesLib;
 using NowPlaying.Exceptions;
 using NowPlaying.Models;
-using System;
 using System.Diagnostics;
-using System.IO;
-using System.Threading;
-using System.Windows.Media.Imaging;
 
 namespace NowPlaying.PlayerControllers.Itunes
 {

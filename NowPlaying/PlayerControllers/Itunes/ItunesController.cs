@@ -60,12 +60,12 @@ namespace NowPlaying.PlayerControllers.Itunes
                 disposedValue = true;
             }
         }
-        
+
         ~ItunesController()
         {
             Dispose(false);
         }
-        
+
         public void Dispose()
         {
             Dispose(true);
