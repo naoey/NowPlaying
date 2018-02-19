@@ -24,6 +24,7 @@ namespace NowPlaying.PlayerControllers.Itunes
 
             itunes = new iTunesApp();
 
+            // TODO: bad apple ​(╯°□°）╯︵ ┻━┻
             //itunes.OnPlayerStopEvent += _ =>
             //{
             //    playerStopped = true;
@@ -41,10 +42,10 @@ namespace NowPlaying.PlayerControllers.Itunes
 
             //itunes.OnPlayerPlayEvent += _ => UpdateTrack();
 
-            UpdateTrack();
+            //UpdateTrack();
         }
 
-        public void UpdateTrack()
+        public override void UpdateTrack()
         {
             var currentTrack = itunes.CurrentTrack;
 
@@ -80,5 +81,12 @@ namespace NowPlaying.PlayerControllers.Itunes
         public override void Play() => itunes.Play();
 
         public override void PreviousTrack() => itunes.PreviousTrack();
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            itunes = null;
+        }
     }
 }

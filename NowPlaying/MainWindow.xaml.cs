@@ -5,6 +5,8 @@ using NowPlaying.Models;
 using System.Windows.Interop;
 using NowPlaying.Exceptions;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace NowPlaying
 {
@@ -13,9 +15,10 @@ namespace NowPlaying
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const int poll_delay = 1000;
+
         public String Identifier;
 
-        private IntPtr? taskbar;
         private ItunesController itunesController;
 
         private Track track;
@@ -52,7 +55,7 @@ namespace NowPlaying
             RECT taskbarRect = getTaskbarSize();
 
             // FIXME: BAD BAD BAD, find out how to determine size of system tray
-            Left = taskbarRect.Right - 1725 - Width;
+            Left = taskbarRect.Right - 1725 - ActualWidth;
             Top = taskbarRect.Top + 2;
         }
 
@@ -77,8 +80,12 @@ namespace NowPlaying
 
             TrackLabel.Measure(new Size(x, y));
 
+            if (Width == TrackLabel.Width)
+                return;
+
             Width = TrackLabel.Width;
 
+            updateTaskbarPosition();
         }
 
         protected override void OnInitialized(EventArgs args)
@@ -88,8 +95,23 @@ namespace NowPlaying
             try
             {
                 itunesController = CreatePlatformController();
-                itunesController.TrackChanged += track => Track = track;
+                // TODO: bad apple ​(╯°□°）╯︵ ┻━┻
+                //itunesController.TrackChanged += track => Track = track;
                 Track = itunesController.GetTrack();
+
+                // FIXME: temporary hax while apple sorts out their COM events. Remove once TrackChanged can actually be used again
+                Task.Factory.StartNew(() =>
+                {
+                    while (true)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            Track = itunesController.GetTrack();
+                        });
+
+                        Thread.Sleep(poll_delay);
+                    }
+                });
             }
             catch (ItunesNotRunningException e)
             {
